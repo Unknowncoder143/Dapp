@@ -50,6 +50,46 @@
     <button id="connectButton">Connect Wallet</button>
     <div class="address" id="address"></div>
   </div>
+  <h1>Crypto Payment</h1>
+  <button id="payButton">Pay with Crypto</button>
+  <p id="status"></p>
+
+  <script>
+    // Crypto Pay Button
+    document.getElementById("payButton").addEventListener("click", async () => {
+      if (typeof window.ethereum !== "undefined") {
+        const receiverAddress = "0xReceiverWalletAddressHere"; // Replace with the recipient's wallet address
+        const amountInEther = "0.01"; // Replace with the desired amount
+
+        try {
+          // Request wallet connection
+          const accounts = await ethereum.request({ method: "eth_requestAccounts" });
+          const senderAddress = accounts[0];
+
+          // Transaction parameters
+          const transactionParameters = {
+            to: receiverAddress,
+            from: senderAddress,
+            value: ethers.utils.parseUnits(amountInEther, "ether").toHexString(),
+          };
+
+          // Send transaction
+          const txHash = await ethereum.request({
+            method: "eth_sendTransaction",
+            params: [transactionParameters],
+          });
+
+          document.getElementById("status").innerText = `Transaction sent! Tx Hash: ${txHash}`;
+        } catch (error) {
+          document.getElementById("status").innerText = `Error: ${error.message}`;
+        }
+      } else {
+        alert("MetaMask is not installed!");
+      }
+    });
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/ethers/dist/ethers.min.js"></script>
 
   <script>
     // Check if MetaMask is installed
