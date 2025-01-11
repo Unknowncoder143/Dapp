@@ -61,7 +61,40 @@
     <p id="walletAddress"></p>
     <p id="message"></p>
   </div>
+  <h1>Pay with MetaMask</h1>
+  <button id="connectWallet">Connect MetaMask</button>
+  <p id="status"></p>
+  <script>
+    const connectWalletButton = document.getElementById("connectWallet");
+    const status = document.getElementById("status");
 
+    connectWalletButton.addEventListener("click", async () => {
+      if (typeof window.ethereum !== "undefined") {
+        try {
+          // Request account access
+          const accounts = await ethereum.request({ method: "eth_requestAccounts" });
+          const account = accounts[0];
+          status.textContent = `Connected: ${account}`;
+
+          // Example: Sending $1 (in ETH) payment
+          const provider = new ethers.providers.Web3Provider(window.ethereum);
+          const signer = provider.getSigner();
+
+          const transaction = await signer.sendTransaction({
+            to: "0xcc91ed47c46c4faf23e637f83ae6a83c91c82541",
+            value: ethers.utils.parseEther("0.0006"), // Equivalent to $1 in ETH (based on rate)
+          });
+
+          status.textContent = `Transaction sent: ${transaction.hash}`;
+        } catch (error) {
+          status.textContent = "Transaction failed.";
+          console.error(error);
+        }
+      } else {
+        status.textContent = "MetaMask not installed.";
+      }
+    });
+      </script>
   <script>
     let userWallet = null;
     const connectWalletButton = document.getElementById("connectWallet");
