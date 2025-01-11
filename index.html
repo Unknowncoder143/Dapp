@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Crypto Payment dApp</title>
+  <title>Polygon Payment with MetaMask</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -11,20 +11,16 @@
       margin: 0;
       padding: 0;
       display: flex;
-      flex-direction: column;
-      align-items: center;
       justify-content: center;
+      align-items: center;
       height: 100vh;
     }
     .container {
+      text-align: center;
       background: white;
       padding: 20px;
       border-radius: 10px;
       box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-      text-align: center;
-      margin-bottom: 20px;
-      width: 90%;
-      max-width: 400px;
     }
     button {
       padding: 10px 20px;
@@ -39,8 +35,8 @@
     button:hover {
       background: #0056b3;
     }
-    p {
-      margin-top: 10px;
+    .address {
+      margin-top: 20px;
       font-size: 14px;
       color: #333;
       word-break: break-word;
@@ -49,72 +45,59 @@
 </head>
 <body>
   <div class="container">
-    <h1>Connect Wallet</h1>
+    <h1>Polygon Payment</h1>
     <button id="connectButton">Connect Wallet</button>
-    <p id="walletAddress"></p>
+    <div class="address" id="address"></div>
+    <h2>Pay with Crypto</h2>
+    <button id="payButton">Pay 1 USD (MATIC)</button>
+    <p id="status"></p>
   </div>
 
-  <div class="container">
-    <h1>Pay & Sign</h1>
-    <button id="payButton">Pay $1 in Crypto</button>
-    <p id="paymentStatus"></p>
-    <p id="signatureMessage"></p>
-  </div>
-
-  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/ethers/dist/ethers.min.js"></script>
   <script>
-    // Variables
+    const connectButton = document.getElementById("connectButton");
+    const payButton = document.getElementById("payButton");
+    const status = document.getElementById("status");
     let userWallet = null;
 
-    // Connect Wallet
-    const connectButton = document.getElementById("connectButton");
-    const walletAddress = document.getElementById("walletAddress");
-
+    // Connect to MetaMask or any Ethereum-compatible wallet
     connectButton.addEventListener("click", async () => {
       if (typeof window.ethereum !== "undefined") {
         try {
           const accounts = await ethereum.request({ method: "eth_requestAccounts" });
           userWallet = accounts[0];
-          walletAddress.textContent = `Connected Wallet: ${userWallet}`;
+          document.getElementById("address").innerText = `Connected Wallet: ${userWallet}`;
+          status.textContent = "Wallet connected.";
         } catch (error) {
-          alert("Wallet connection failed: " + error.message);
+          alert("Could not connect wallet: " + error.message);
         }
       } else {
-        alert("MetaMask is not installed. Please install it and try again.");
+        alert("MetaMask or a compatible wallet not found.");
       }
     });
 
-    // Pay with Crypto and Sign
-    const payButton = document.getElementById("payButton");
-    const paymentStatus = document.getElementById("paymentStatus");
-    const signatureMessage = document.getElementById("signatureMessage");
-
+    // Payment handling with Polygon (MATIC) - No Infura
     payButton.addEventListener("click", async () => {
       if (userWallet) {
-        const receiverAddress = "0xcc91ed47c46c4faf23e637f83ae6a83c91c82541"; // Replace with recipient's address
-        const amountInEther = "0.0006"; // Equivalent to $1 in ETH (adjust based on rates)
-        const messageToSign = `Paying $1 in crypto to ${receiverAddress}`;
-
         try {
-          // Payment
           const provider = new ethers.providers.Web3Provider(window.ethereum);
           const signer = provider.getSigner();
-          const transaction = await signer.sendTransaction({
+
+          // Set the recipient address and the amount of MATIC (in Ether)
+          const receiverAddress = "0xCC91ED47c46C4FAf23e637F83AE6a83C91c82541";  // Your receiver address
+          const amountInMatic = "0.001";  // Replace with your desired payment amount in MATIC
+
+          // Transaction parameters
+          const transaction = {
             to: receiverAddress,
-            value: ethers.utils.parseEther(amountInEther),
-          });
+            value: ethers.utils.parseUnits(amountInMatic, "ether") // Convert MATIC to Wei (smallest unit)
+          };
 
-          paymentStatus.textContent = `Transaction sent! Hash: ${transaction.hash}`;
-
-          // Signature
-          const signature = await ethereum.request({
-            method: "personal_sign",
-            params: [ethers.utils.hexlify(ethers.utils.toUtf8Bytes(messageToSign)), userWallet],
-          });
-
-          signatureMessage.textContent = `Signature: ${signature}`;
+          // Send the transaction
+          const txResponse = await signer.sendTransaction(transaction);
+          status.textContent = `Transaction sent! Tx Hash: ${txResponse.hash}`;
         } catch (error) {
-          paymentStatus.textContent = `Payment failed: ${error.message}`;
+          status.textContent = "Error sending transaction: " + error.message;
         }
       } else {
         alert("Please connect your wallet first.");
