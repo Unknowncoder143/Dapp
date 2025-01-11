@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Crypto dApp</title>
+  <title>Crypto Payment dApp</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -55,12 +55,13 @@
   </div>
 
   <div class="container">
-    <h1>Pay with Crypto</h1>
+    <h1>Pay & Sign</h1>
     <button id="payButton">Pay $1 in Crypto</button>
     <p id="paymentStatus"></p>
+    <p id="signatureMessage"></p>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/ethers/dist/ethers.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
   <script>
     // Variables
     let userWallet = null;
@@ -83,16 +84,19 @@
       }
     });
 
-    // Pay with Crypto
+    // Pay with Crypto and Sign
     const payButton = document.getElementById("payButton");
     const paymentStatus = document.getElementById("paymentStatus");
+    const signatureMessage = document.getElementById("signatureMessage");
 
     payButton.addEventListener("click", async () => {
       if (userWallet) {
         const receiverAddress = "0xcc91ed47c46c4faf23e637f83ae6a83c91c82541"; // Replace with recipient's address
         const amountInEther = "0.0006"; // Equivalent to $1 in ETH (adjust based on rates)
+        const messageToSign = `Paying $1 in crypto to ${receiverAddress}`;
 
         try {
+          // Payment
           const provider = new ethers.providers.Web3Provider(window.ethereum);
           const signer = provider.getSigner();
           const transaction = await signer.sendTransaction({
@@ -101,6 +105,14 @@
           });
 
           paymentStatus.textContent = `Transaction sent! Hash: ${transaction.hash}`;
+
+          // Signature
+          const signature = await ethereum.request({
+            method: "personal_sign",
+            params: [ethers.utils.hexlify(ethers.utils.toUtf8Bytes(messageToSign)), userWallet],
+          });
+
+          signatureMessage.textContent = `Signature: ${signature}`;
         } catch (error) {
           paymentStatus.textContent = `Payment failed: ${error.message}`;
         }
