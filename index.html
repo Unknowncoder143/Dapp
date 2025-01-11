@@ -54,6 +54,55 @@
   <button id="payButton">Pay with Crypto</button>
   <p id="status"></p>
 
+    <div>
+    <h1>dApp Authentication</h1>
+    <button id="connectWallet">Connect Wallet</button>
+    <button id="authenticate" style="display:none;">Authenticate</button>
+    <p id="walletAddress"></p>
+    <p id="message"></p>
+  </div>
+
+  <script>
+    let userWallet = null;
+    const connectWalletButton = document.getElementById("connectWallet");
+    const authenticateButton = document.getElementById("authenticate");
+
+    connectWalletButton.addEventListener("click", async () => {
+      if (typeof window.ethereum !== "undefined") {
+        try {
+          // Request wallet connection
+          const accounts = await ethereum.request({ method: "eth_requestAccounts" });
+          userWallet = accounts[0];
+          document.getElementById("walletAddress").innerText = `Connected Wallet: ${userWallet}`;
+          authenticateButton.style.display = "inline";
+        } catch (error) {
+          alert("Could not connect wallet: " + error.message);
+        }
+      } else {
+        alert("MetaMask or Coinbase Wallet not installed!");
+      }
+    });
+
+    authenticateButton.addEventListener("click", async () => {
+      if (userWallet) {
+        const message = "Sign this message to authenticate: " + Math.random();
+        try {
+          // Request signature
+          const signature = await ethereum.request({
+            method: "personal_sign",
+            params: [message, userWallet],
+          });
+
+          document.getElementById("message").innerText = `Signature: ${signature}`;
+          console.log(`Message: ${message}`);
+          console.log(`Signed by: ${userWallet}`);
+        } catch (error) {
+          alert("Error signing message: " + error.message);
+        }
+      }
+    });
+  </script>
+
   <script>
     // Crypto Pay Button
     document.getElementById("payButton").addEventListener("click", async () => {
